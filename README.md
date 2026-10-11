@@ -1,139 +1,69 @@
-##################################################
-#          Rudy OSINT Username Tool              #
-##################################################
+<p align="center"><img src="docs/banner.svg" alt="Rudy Username OSINT — Public username discovery through Sherlock and Discord." width="100%"></p>
 
-Description:
--------------
-Rudy OSINT Username is an open-source intelligence (OSINT) reconnaissance tool
-designed to perform username-based searches across multiple online platforms.
-It focuses primarily on Turkey-based websites and services, making it especially
-useful for regional digital footprint analysis.
+<p align="center">
+  <img src="https://img.shields.io/badge/Runtime-Python%20/%20Sherlock-55e0b6?style=flat-square&labelColor=101b28" alt="Python / Sherlock">
+  <img src="https://img.shields.io/badge/Docs-source_reviewed-55e0b6?style=flat-square&labelColor=101b28" alt="Documentation based on source review">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-55e0b6?style=flat-square&labelColor=101b28" alt="MIT license"></a>
+</p>
 
-The tool aggregates results from 25 different platforms to help identify
-user presence, reused usernames, and potential online activity linked to a
-single username.
+<p align="center"><strong>Public username discovery through Sherlock and Discord.</strong></p>
 
---------------------------------------------------
+<p align="center"><a href="#overview">Overview</a> · <a href="#capabilities">Capabilities</a> · <a href="#quick-start">Quick start</a> · <a href="#implementation-notes">Implementation notes</a></p>
 
-Features:
----------
-1. Username OSINT Search
-   - Searches a single username across 25 platforms
-   - Focused on Turkey-based websites and services
-   - Identifies reused usernames across multiple sources
-   - Helps map online presence and digital footprint
+---
 
-2. Platform Coverage
-   - Social media platforms
-   - Forums and community websites
-   - Local Turkish services
-   - Public-facing user profile pages
+## Overview
 
-3. Fast & Automated
-   - Automated querying across all supported sites
-   - Minimal manual effort required
-   - Designed for quick reconnaissance workflows
+A Discord wrapper around Sherlock. The `/username` command runs Sherlock against a configured list of 25 platform names, parses candidate profile links from its output and displays up to 20 matches in an embed.
 
-4. Clean Output
-   - Clear indication of found and not-found results
-   - Easy-to-read output format
-   - Suitable for reporting and documentation
+## Capabilities
 
---------------------------------------------------
+| Layer | Implemented behavior |
+| :--- | :--- |
+| Search | Invokes Sherlock as an asynchronous subprocess with selected `--site` values |
+| Input | Checks username length and applies a basic character check |
+| Results | Parses Sherlock stdout for platform names and public URLs |
+| Discord | `/username` with an optional overall timeout parameter |
 
-Requirements:
--------------
-- Supported OS: Linux, Windows, macOS
-- Internet access
-- Valid username input
+## Quick start
 
---------------------------------------------------
+Requires Python, a Discord bot application and a Sherlock installation accessible to the bot process. Keep the bundled `raven.png`; it must be a readable image of at least 1 KB.
 
-Installation:
--------------
-1. Clone or download the tool files.
+```bash
+git clone https://github.com/r4venrudy/rudy-username-osint.git
+cd rudy-username-osint
+python -m pip install discord.py Pillow sherlock-project
+sherlock --version
+```
 
-2. Install required dependencies (if applicable):
-   Follow the instructions provided in the project repository.
+Set the `TOKEN` placeholder at the bottom of `bot.py` in your local copy. Do not commit your configured token. Enable Message Content Intent in the Discord developer settings because the current client requests it, and invite the bot with `bot` and `applications.commands` scopes.
 
-3. Run the tool according to usage instructions.
+```bash
+python bot.py
+```
 
---------------------------------------------------
+Use `/username username:example_user timeout:60` in Discord.
 
-Usage:
-------
-1. Launch the tool.
+## Implementation notes
 
-2. Enter the target username you want to investigate.
+- Sherlock's site identifiers and output format can change. The configured platform names must match the installed Sherlock version.
+- A matching username is a lead, not proof that profiles belong to the same person. Findings need verification in context.
+- Input validation is basic; the implementation is not a complete allowlist validator. The subprocess is passed an argument list rather than a shell command.
+- The command uses a 10-second Sherlock per-request timeout and a separate overall wait. Timeout cleanup and concurrent command limits need review before operating a busy bot.
+- No platform sign-in, private-profile access or identity attribution is implemented. Replies are channel-visible.
 
-3. The tool will:
-   - Query all supported platforms
-   - Check for username existence
-   - Return results for each platform
+## Project map
 
-4. Review the output to identify:
-   - Confirmed matches
-   - Possible accounts
-   - Platforms where the username does not exist
+```text
+bot.py      Discord command, Sherlock runner and output parser
+raven.png   Required startup asset
+LICENSE     MIT license
+```
 
---------------------------------------------------
+## License
 
-Output Format:
---------------
-- Results are displayed in a structured and readable format.
-- Each platform is listed with its corresponding status.
-- Positive matches are clearly distinguished from negatives.
-- Output can be used directly in OSINT reports.
+[MIT](LICENSE). Preserve the attribution in the license file.
 
---------------------------------------------------
+---
 
-Use Cases:
-----------
-- OSINT investigations
-- Digital footprint analysis
-- Social media reconnaissance
-- Account correlation
-- Cybersecurity research
-- Threat intelligence gathering
-
---------------------------------------------------
-
-Error Handling:
----------------
-- Network failures are handled gracefully.
-- Unreachable platforms do not stop execution.
-- Partial results are still returned when some checks fail.
-
---------------------------------------------------
-
-Security & Legal Notes:
-----------------------
-- This tool performs passive OSINT checks only.
-- No authentication bypassing or intrusive actions are used.
-- Only searches publicly accessible information.
-- Use strictly for legal, ethical, and authorized purposes.
-- The author is not responsible for misuse.
-
---------------------------------------------------
-
-Customization:
---------------
-The tool can be extended by:
-- Adding new platforms
-- Expanding beyond Turkey-based sites
-- Integrating output export (JSON, CSV)
-- Adding rate limiting or delays
-- Automating investigation workflows
-
---------------------------------------------------
-
-Author:
--------
-Created for OSINT research, username intelligence, and cybersecurity investigations.
-
---------------------------------------------------
-
-License:
---------
-Provided as-is.
-For educational and authorized OSINT use only.
+<p align="center">Part of the <a href="https://github.com/r4venrudy">r4venrudy</a> project collection.</p>
