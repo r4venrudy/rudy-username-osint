@@ -1,7 +1,7 @@
 <p align="center"><img src="docs/banner.svg" alt="Rudy Username OSINT — Public username discovery through Sherlock and Discord." width="100%"></p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Runtime-Python%20/%20Sherlock-55e0b6?style=flat-square&labelColor=101b28" alt="Python / Sherlock">
+  <img src="https://img.shields.io/badge/Runtime-Python%20%2F%20Sherlock-55e0b6?style=flat-square&labelColor=101b28" alt="Python / Sherlock">
   <img src="https://img.shields.io/badge/Docs-source_reviewed-55e0b6?style=flat-square&labelColor=101b28" alt="Documentation based on source review">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-55e0b6?style=flat-square&labelColor=101b28" alt="MIT license"></a>
 </p>
