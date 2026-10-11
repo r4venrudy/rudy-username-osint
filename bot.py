@@ -153,5 +153,10 @@ async def username_search(
         ))
 
 if __name__ == "__main__":
-    TOKEN = "YOUR DISCORD BOT TOKEN HERE"
-    bot.run(TOKEN)
+    from rudy_runtime.config import load_config
+    config = load_config({'TOKEN':'DISCORD_TOKEN'})
+    if '--check-config' in sys.argv:
+        subprocess.run(['sherlock', '--version'], check=True)
+        print('Configuration and dependencies ready')
+        raise SystemExit(0)
+    bot.run(config['TOKEN'])
