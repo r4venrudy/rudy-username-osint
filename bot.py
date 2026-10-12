@@ -58,6 +58,8 @@ SITES_TO_CHECK = [
     "Uludag",
 ]
 
+USERNAME_RE = re.compile(r"[A-Za-z0-9._-]{3,30}")
+
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -81,15 +83,14 @@ async def username_search(
     username: str,
     timeout: Optional[int] = 60
 ):
+    username = username.strip()
+    if not USERNAME_RE.fullmatch(username):
+        await interaction.response.send_message(
+            "❌ Username must be 3-30 characters: letters, numbers, '.', '_' or '-'.", ephemeral=True
+        )
+        return
+
     await interaction.response.defer(thinking=True)
-
-    if not username.isalnum() and not any(c in username for c in ["_", "-", "."]):
-        await interaction.followup.send("❌ Invalid username format.")
-        return
-
-    if len(username) < 3 or len(username) > 30:
-        await interaction.followup.send("❌ Username must be between 3 and 30 characters.")
-        return
 
     try:
         embed = discord.Embed(
