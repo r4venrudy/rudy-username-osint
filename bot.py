@@ -26,6 +26,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 import asyncio
+import shutil
 import subprocess
 import re
 from typing import Optional
@@ -103,15 +104,8 @@ async def username_search(
         )
         await interaction.followup.send(embed=embed)
 
-        try:
-            subprocess.run(["sherlock", "--version"], capture_output=True, check=True, timeout=5)
-            base_cmd = ["sherlock"]
-        except:
-            try:
-                subprocess.run(["python3", "--version"], capture_output=True, check=True, timeout=5)
-                base_cmd = ["python3", "-m", "sherlock"]
-            except:
-                base_cmd = ["python", "-m", "sherlock"]
+        # shutil.which is instant; the old subprocess probes blocked the event loop for up to 10 seconds
+        base_cmd = ["sherlock"] if shutil.which("sherlock") else [sys.executable, "-m", "sherlock_project"]
 
         cmd = base_cmd + [username, "--timeout", "10"]
         for site in SITES_TO_CHECK:
