@@ -116,7 +116,7 @@ async def username_search(
         )
 
         try:
-            stdout, _ = await asyncio.wait_for(process.communicate(), timeout=timeout)
+            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
         except asyncio.TimeoutError:
             process.kill()
             await process.wait()
@@ -125,6 +125,16 @@ async def username_search(
         output = stdout.decode("utf-8", errors="ignore")
 
         found = parse_sherlock_output(output)
+
+        if process.returncode != 0 and not found:
+            # A missing or broken Sherlock install used to look like "No Results"
+            print(f"Sherlock exited with {process.returncode}: {stderr.decode('utf-8', errors='ignore')[-500:]}")
+            await interaction.followup.send(embed=discord.Embed(
+                title="❌ Search failed",
+                description="Sherlock could not run on the server. Check that sherlock-project is installed.",
+                color=discord.Color.red()
+            ))
+            return
 
         if found:
             embed = discord.Embed(
