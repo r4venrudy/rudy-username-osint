@@ -145,6 +145,8 @@ async def username_search(
             )
             for s in found[:20]:
                 embed.add_field(name=s["name"], value=s["url"], inline=True)
+            if len(found) > 20:
+                embed.set_footer(text=f"{len(found) - 20} more matches not shown")
             await interaction.followup.send(embed=embed)
         else:
             await interaction.followup.send(embed=discord.Embed(
