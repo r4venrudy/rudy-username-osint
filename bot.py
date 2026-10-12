@@ -65,14 +65,19 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-@bot.event
-async def on_ready():
-    print(f"{bot.user} has connected to Discord!")
+async def sync_commands():
+    # setup_hook runs once per process; on_ready fires again on every reconnect
     try:
         synced = await bot.tree.sync()
         print(f"Synced {len(synced)} command(s)")
     except Exception as e:
         print(f"Failed to sync commands: {e}")
+
+bot.setup_hook = sync_commands
+
+@bot.event
+async def on_ready():
+    print(f"{bot.user} has connected to Discord!")
 
 @bot.tree.command(name="username", description="Search for a username across multiple platforms using Sherlock")
 @app_commands.describe(
