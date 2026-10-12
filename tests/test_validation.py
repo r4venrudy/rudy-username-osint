@@ -23,3 +23,15 @@ class CleanUsernameTests(unittest.TestCase):
 
     def test_handles_none(self):
         self.assertIsNone(clean_username(None))
+
+
+class ClampTimeoutTests(unittest.TestCase):
+    def test_default_when_missing(self):
+        self.assertEqual(clamp_timeout(None), 60)
+        self.assertEqual(clamp_timeout(0), 60)
+
+    def test_limits(self):
+        self.assertEqual(clamp_timeout(5), 15)
+        self.assertEqual(clamp_timeout(-30), 15)
+        self.assertEqual(clamp_timeout(999), 180)
+        self.assertEqual(clamp_timeout(90), 90)
