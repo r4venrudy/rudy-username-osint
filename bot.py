@@ -28,10 +28,10 @@ from discord.ext import commands
 import asyncio
 import shutil
 import subprocess
-import re
 from typing import Optional
 
 from rudy_runtime.sherlock import parse_sherlock_output
+from rudy_runtime.validation import clamp_timeout, clean_username
 
 SITES_TO_CHECK = [
     "Instagram",
@@ -61,8 +61,6 @@ SITES_TO_CHECK = [
     "Uludag",
 ]
 
-USERNAME_RE = re.compile(r"[A-Za-z0-9._-]{3,30}")
-
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -86,15 +84,15 @@ async def username_search(
     username: str,
     timeout: Optional[int] = 60
 ):
-    username = username.strip()
-    if not USERNAME_RE.fullmatch(username):
+    username = clean_username(username)
+    if username is None:
         await interaction.response.send_message(
             "❌ Username must be 3-30 characters: letters, numbers, '.', '_' or '-'.", ephemeral=True
         )
         return
 
     await interaction.response.defer(thinking=True)
-    timeout = max(15, min(timeout or 60, 180))
+    timeout = clamp_timeout(timeout)
 
     try:
         embed = discord.Embed(
