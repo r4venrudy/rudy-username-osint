@@ -30,6 +30,8 @@ import subprocess
 import re
 from typing import Optional
 
+from rudy_runtime.sherlock import parse_sherlock_output
+
 SITES_TO_CHECK = [
     "Instagram",
     "TikTok",
@@ -130,13 +132,7 @@ async def username_search(
             return
         output = stdout.decode("utf-8", errors="ignore")
 
-        found = []
-
-        for line in output.split("\n"):
-            if "http" in line.lower() and ("[+]" in line or "[*]" in line):
-                m = re.search(r"\[.\]\s*([^:]+):\s*(https?://[^\s]+)", line)
-                if m:
-                    found.append({"name": m.group(1), "url": m.group(2)})
+        found = parse_sherlock_output(output)
 
         if found:
             embed = discord.Embed(
