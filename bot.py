@@ -91,6 +91,7 @@ async def username_search(
         return
 
     await interaction.response.defer(thinking=True)
+    timeout = max(15, min(timeout or 60, 180))
 
     try:
         embed = discord.Embed(
@@ -120,7 +121,13 @@ async def username_search(
             stderr=asyncio.subprocess.PIPE
         )
 
-        stdout, _ = await asyncio.wait_for(process.communicate(), timeout=timeout + 30)
+        try:
+            stdout, _ = await asyncio.wait_for(process.communicate(), timeout=timeout)
+        except asyncio.TimeoutError:
+            process.kill()
+            await process.wait()
+            await interaction.followup.send(f"⏱️ Search for **{username}** took longer than {timeout} seconds and was stopped.")
+            return
         output = stdout.decode("utf-8", errors="ignore")
 
         found = []
