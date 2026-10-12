@@ -2,7 +2,8 @@
 
 import re
 
-USERNAME_RE = re.compile(r"[A-Za-z0-9._-]{3,30}")
+# The first character may not be "-" so Sherlock never reads the name as an option such as --version.
+USERNAME_RE = re.compile(r"[A-Za-z0-9._][A-Za-z0-9._-]{2,29}")
 
 MIN_TIMEOUT = 15
 MAX_TIMEOUT = 180

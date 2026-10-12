@@ -16,5 +16,10 @@ class CleanUsernameTests(unittest.TestCase):
         for bad in ("raven rudy", "raven/../x", "raven;ls", "ra$ven", ""):
             self.assertIsNone(clean_username(bad), bad)
 
+    def test_rejects_names_that_look_like_options(self):
+        for bad in ("--version", "-raven", "--site"):
+            self.assertIsNone(clean_username(bad), bad)
+        self.assertEqual(clean_username("raven-rudy"), "raven-rudy")
+
     def test_handles_none(self):
         self.assertIsNone(clean_username(None))

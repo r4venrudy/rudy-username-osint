@@ -87,7 +87,7 @@ async def username_search(
     username = clean_username(username)
     if username is None:
         await interaction.response.send_message(
-            "❌ Username must be 3-30 characters: letters, numbers, '.', '_' or '-'.", ephemeral=True
+            "❌ Username must be 3-30 characters: letters, numbers, '.', '_' or '-', not starting with '-'.", ephemeral=True
         )
         return
 
