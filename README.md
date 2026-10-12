@@ -56,9 +56,13 @@ Use `/username username:example_user timeout:60` in Discord.
 ## Project map
 
 ```text
-bot.py      Discord command, Sherlock runner and output parser
-raven.png   Required startup asset
-LICENSE     MIT license
+bot.py                     Discord command and Sherlock runner
+rudy_runtime/sherlock.py   Sherlock command lookup and output parser
+rudy_runtime/validation.py Username and timeout checks
+rudy_runtime/config.py     Token loading from env or RUDY_CONFIG
+tests/                     unittest suite (python -m unittest discover -s tests)
+raven.png                  Required startup asset
+LICENSE                    MIT license
 ```
 
 ## GitHub package
