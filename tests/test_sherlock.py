@@ -1,6 +1,8 @@
 import unittest
 
-from rudy_runtime.sherlock import parse_sherlock_output
+import sys
+
+from rudy_runtime.sherlock import parse_sherlock_output, sherlock_command
 
 SAMPLE = """[*] Checking username johndoe on:
 
@@ -26,3 +28,11 @@ class SherlockParseTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SherlockCommandTests(unittest.TestCase):
+    def test_prefers_console_script(self):
+        self.assertEqual(sherlock_command(lambda name: "/usr/bin/sherlock"), ["sherlock"])
+
+    def test_falls_back_to_module(self):
+        self.assertEqual(sherlock_command(lambda name: None), [sys.executable, "-m", "sherlock_project"])

@@ -26,12 +26,11 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 import asyncio
-import shutil
 import subprocess
 import traceback
 from typing import Optional
 
-from rudy_runtime.sherlock import parse_sherlock_output
+from rudy_runtime.sherlock import parse_sherlock_output, sherlock_command
 from rudy_runtime.validation import clamp_timeout, clean_username
 
 SITES_TO_CHECK = [
@@ -103,10 +102,7 @@ async def username_search(
         )
         await interaction.followup.send(embed=embed)
 
-        # shutil.which is instant; the old subprocess probes blocked the event loop for up to 10 seconds
-        base_cmd = ["sherlock"] if shutil.which("sherlock") else [sys.executable, "-m", "sherlock_project"]
-
-        cmd = base_cmd + [username, "--timeout", "10"]
+        cmd = sherlock_command() + [username, "--timeout", "10"]
         for site in SITES_TO_CHECK:
             cmd.extend(["--site", site])
 
@@ -167,7 +163,7 @@ if __name__ == "__main__":
     from rudy_runtime.config import load_config
     config = load_config({'TOKEN':'DISCORD_TOKEN'})
     if '--check-config' in sys.argv:
-        subprocess.run(['sherlock', '--version'], check=True)
+        subprocess.run(sherlock_command() + ['--version'], check=True)
         print('Configuration and dependencies ready')
         raise SystemExit(0)
     bot.run(config['TOKEN'])

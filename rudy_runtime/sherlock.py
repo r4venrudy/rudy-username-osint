@@ -1,4 +1,6 @@
 import re
+import shutil
+import sys
 
 # Sherlock prints hits as "[+] Site Name: https://..."
 _HIT = re.compile(r"^\[\+\]\s*([^:]+):\s*(https?://\S+)")
@@ -13,3 +15,8 @@ def parse_sherlock_output(output):
             seen.add(m.group(2))
             found.append({"name": m.group(1).strip(), "url": m.group(2)})
     return found
+
+
+def sherlock_command(which=shutil.which):
+    """Return the argv prefix that runs Sherlock: the console script if present, else the module."""
+    return ["sherlock"] if which("sherlock") else [sys.executable, "-m", "sherlock_project"]
