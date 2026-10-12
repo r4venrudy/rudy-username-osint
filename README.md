@@ -21,9 +21,10 @@ A Discord wrapper around Sherlock. The `/username` command runs Sherlock against
 | Layer | Implemented behavior |
 | :--- | :--- |
 | Search | Invokes Sherlock as an asynchronous subprocess with selected `--site` values |
-| Input | Checks username length and applies a basic character check |
-| Results | Parses Sherlock stdout for platform names and public URLs |
-| Discord | `/username` with an optional overall timeout parameter |
+| Input | Accepts 3-30 letters, digits, `.`, `_` or `-`, never starting with `-` |
+| Results | Parses Sherlock stdout, drops duplicate URLs, shows 20 matches and counts the rest |
+| Discord | `/username` with an optional overall timeout, kept between 15 and 180 seconds |
+| Errors | Reports a failed Sherlock run or timeout; internal errors go to the log, not the channel |
 
 ## Quick start
 
@@ -36,7 +37,7 @@ python -m pip install discord.py Pillow sherlock-project
 sherlock --version
 ```
 
-Set `DISCORD_TOKEN` in the process environment, or supply `TOKEN` in a local JSON file referenced by `RUDY_CONFIG`. Do not commit your configured token. Enable Message Content Intent in the Discord developer settings because the current client requests it, and invite the bot with `bot` and `applications.commands` scopes.
+Set `DISCORD_TOKEN` in the process environment, or supply `TOKEN` in a local JSON file referenced by `RUDY_CONFIG`. Do not commit your configured token. No privileged intents are needed; invite the bot with `bot` and `applications.commands` scopes.
 
 ```bash
 python bot.py
@@ -48,8 +49,8 @@ Use `/username username:example_user timeout:60` in Discord.
 
 - Sherlock's site identifiers and output format can change. The configured platform names must match the installed Sherlock version.
 - A matching username is a lead, not proof that profiles belong to the same person. Findings need verification in context.
-- Input validation is basic; the implementation is not a complete allowlist validator. The subprocess is passed an argument list rather than a shell command.
-- The command uses a 10-second Sherlock per-request timeout and a separate overall wait. Timeout cleanup and concurrent command limits need review before operating a busy bot.
+- Usernames are checked against a strict allowlist, and a leading `-` is refused so Sherlock never reads the name as an option. The subprocess is passed an argument list rather than a shell command.
+- The command uses a 10-second Sherlock per-request timeout and a separate overall wait. When the overall wait runs out the Sherlock process is killed. Concurrent command limits need review before operating a busy bot.
 - No platform sign-in, private-profile access or identity attribution is implemented. Replies are channel-visible.
 
 ## Project map
