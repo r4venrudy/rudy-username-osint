@@ -28,6 +28,7 @@ from discord.ext import commands
 import asyncio
 import shutil
 import subprocess
+import traceback
 from typing import Optional
 
 from rudy_runtime.sherlock import parse_sherlock_output
@@ -153,10 +154,12 @@ async def username_search(
                 color=discord.Color.red()
             ))
 
-    except Exception as e:
+    except Exception:
+        # Keep internal details (paths, command lines) in the log, not in the channel
+        traceback.print_exc()
         await interaction.followup.send(embed=discord.Embed(
             title="❌ Error",
-            description=str(e),
+            description="Something went wrong while searching. Please try again later.",
             color=discord.Color.red()
         ))
 
