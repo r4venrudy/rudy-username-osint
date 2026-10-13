@@ -32,36 +32,9 @@ import traceback
 from typing import Optional
 
 from rudy_runtime.cooldown import Cooldown
+from rudy_runtime.sites import SITES_TO_CHECK
 from rudy_runtime.sherlock import parse_sherlock_output, results_text, sherlock_command
 from rudy_runtime.validation import clamp_timeout, clean_username
-
-SITES_TO_CHECK = [
-    "Instagram",
-    "TikTok",
-    "Facebook",
-    "Snapchat",
-    "Twitter",
-    "Reddit",
-    "Pinterest",
-    "LinkedIn",
-    "GitHub",
-    "YouTube",
-    "Twitch",
-    "Kick",
-    "Chess.com",
-    "Lichess",
-    "Steam",
-    "Xbox Gamertag",
-    "NameMC",
-    "Spotify",
-    "SoundCloud",
-    "Telegram",
-    "Duolingo",
-    "Tinder",
-    "HackerNews",
-    "EksiSozluk",
-    "Uludag",
-]
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
