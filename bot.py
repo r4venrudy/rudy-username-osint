@@ -30,6 +30,7 @@ import subprocess
 import traceback
 from typing import Optional
 
+from rudy_runtime.cooldown import Cooldown
 from rudy_runtime.sherlock import parse_sherlock_output, sherlock_command
 from rudy_runtime.validation import clamp_timeout, clean_username
 
@@ -67,6 +68,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # Each search starts a Sherlock process that makes dozens of HTTP requests; cap how many run at once
 MAX_CONCURRENT_SEARCHES = 2
 search_slots = asyncio.Semaphore(MAX_CONCURRENT_SEARCHES)
+cooldown = Cooldown(int(os.environ.get("COOLDOWN_SECONDS", "30") or 0))
 
 async def sync_commands():
     # setup_hook runs once per process; on_ready fires again on every reconnect
@@ -96,6 +98,13 @@ async def username_search(
     if username is None:
         await interaction.response.send_message(
             "❌ Username must be 3-30 characters: letters, numbers, '.', '_' or '-', not starting with '-'.", ephemeral=True
+        )
+        return
+
+    wait = cooldown.take(interaction.user.id)
+    if wait:
+        await interaction.response.send_message(
+            f"⏳ Please wait {int(wait) + 1} seconds before starting another search.", ephemeral=True
         )
         return
 
