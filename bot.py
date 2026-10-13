@@ -26,12 +26,13 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 import asyncio
+import io
 import subprocess
 import traceback
 from typing import Optional
 
 from rudy_runtime.cooldown import Cooldown
-from rudy_runtime.sherlock import parse_sherlock_output, sherlock_command
+from rudy_runtime.sherlock import parse_sherlock_output, results_text, sherlock_command
 from rudy_runtime.validation import clamp_timeout, clean_username
 
 SITES_TO_CHECK = [
@@ -159,8 +160,12 @@ async def username_search(
             for s in found[:20]:
                 embed.add_field(name=s["name"], value=s["url"], inline=True)
             if len(found) > 20:
-                embed.set_footer(text=f"{len(found) - 20} more matches not shown")
-            await interaction.followup.send(embed=embed)
+                # the embed holds 20 fields at most, so the full list goes along as a text file
+                embed.set_footer(text=f"{len(found) - 20} more matches in the attached file")
+                report = discord.File(io.BytesIO(results_text(username, found).encode("utf-8")), filename=f"{username}-matches.txt")
+                await interaction.followup.send(embed=embed, file=report)
+            else:
+                await interaction.followup.send(embed=embed)
         else:
             await interaction.followup.send(embed=discord.Embed(
                 title="❌ No Results",

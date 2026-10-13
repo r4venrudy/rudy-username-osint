@@ -2,7 +2,7 @@ import unittest
 
 import sys
 
-from rudy_runtime.sherlock import parse_sherlock_output, sherlock_command
+from rudy_runtime.sherlock import parse_sherlock_output, results_text, sherlock_command
 
 SAMPLE = """[*] Checking username johndoe on:
 
@@ -36,3 +36,10 @@ class SherlockCommandTests(unittest.TestCase):
 
     def test_falls_back_to_module(self):
         self.assertEqual(sherlock_command(lambda name: None), [sys.executable, "-m", "sherlock_project"])
+
+
+class ResultsTextTests(unittest.TestCase):
+    def test_lists_every_match(self):
+        found = [{"name": "GitHub", "url": "https://github.com/x"}, {"name": "Reddit", "url": "https://reddit.com/u/x"}]
+        self.assertEqual(results_text("x", found),
+                         "Sherlock matches for x (2)\n\nGitHub: https://github.com/x\nReddit: https://reddit.com/u/x\n")

@@ -20,3 +20,10 @@ def parse_sherlock_output(output):
 def sherlock_command(which=shutil.which):
     """Return the argv prefix that runs Sherlock: the console script if present, else the module."""
     return ["sherlock"] if which("sherlock") else [sys.executable, "-m", "sherlock_project"]
+
+
+def results_text(username, found):
+    """Plain-text report of every match, attached when the embed cannot show them all."""
+    lines = [f"Sherlock matches for {username} ({len(found)})", ""]
+    lines += [f"{s['name']}: {s['url']}" for s in found]
+    return "\n".join(lines) + "\n"
