@@ -64,6 +64,10 @@ SITES_TO_CHECK = [
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+# Each search starts a Sherlock process that makes dozens of HTTP requests; cap how many run at once
+MAX_CONCURRENT_SEARCHES = 2
+search_slots = asyncio.Semaphore(MAX_CONCURRENT_SEARCHES)
+
 async def sync_commands():
     # setup_hook runs once per process; on_ready fires again on every reconnect
     try:
@@ -110,19 +114,20 @@ async def username_search(
         for site in SITES_TO_CHECK:
             cmd.extend(["--site", site])
 
-        process = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
+        async with search_slots:
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
 
-        try:
-            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
-        except asyncio.TimeoutError:
-            process.kill()
-            await process.wait()
-            await interaction.followup.send(f"⏱️ Search for **{username}** took longer than {timeout} seconds and was stopped.")
-            return
+            try:
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
+            except asyncio.TimeoutError:
+                process.kill()
+                await process.wait()
+                await interaction.followup.send(f"⏱️ Search for **{username}** took longer than {timeout} seconds and was stopped.")
+                return
         output = stdout.decode("utf-8", errors="ignore")
 
         found = parse_sherlock_output(output)
