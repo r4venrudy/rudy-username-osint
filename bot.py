@@ -120,7 +120,7 @@ async def username_search(
         )
         await interaction.followup.send(embed=embed)
 
-        cmd = sherlock_command() + [username, "--timeout", "10"]
+        cmd = sherlock_command() + [username, "--timeout", "10", "--no-color"]
         for site in SITES_TO_CHECK:
             cmd.extend(["--site", site])
 

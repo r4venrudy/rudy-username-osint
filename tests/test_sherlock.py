@@ -43,3 +43,9 @@ class ResultsTextTests(unittest.TestCase):
         found = [{"name": "GitHub", "url": "https://github.com/x"}, {"name": "Reddit", "url": "https://reddit.com/u/x"}]
         self.assertEqual(results_text("x", found),
                          "Sherlock matches for x (2)\n\nGitHub: https://github.com/x\nReddit: https://reddit.com/u/x\n")
+
+
+class AnsiOutputTests(unittest.TestCase):
+    def test_coloured_lines_are_parsed(self):
+        line = "\x1b[1m\x1b[37m[\x1b[32m+\x1b[37m]\x1b[32m GitHub:\x1b[0m https://www.github.com/johndoe\x1b[0m"
+        self.assertEqual(parse_sherlock_output(line), [{"name": "GitHub", "url": "https://www.github.com/johndoe"}])

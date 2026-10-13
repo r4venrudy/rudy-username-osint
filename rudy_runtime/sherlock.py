@@ -6,10 +6,14 @@ import sys
 _HIT = re.compile(r"^\[\+\]\s*([^:]+):\s*(https?://\S+)")
 
 
+_ANSI = re.compile(r"\x1b\[[0-9;]*m")
+
+
 def parse_sherlock_output(output):
     """Return [{"name", "url"}] for each profile Sherlock reported as found, without duplicates."""
     found, seen = [], set()
-    for line in output.splitlines():
+    # colour codes would hide the "[+]" marker if colorama ever leaves them in
+    for line in _ANSI.sub("", output).splitlines():
         m = _HIT.match(line.strip())
         if m and m.group(2) not in seen:
             seen.add(m.group(2))
