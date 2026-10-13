@@ -14,7 +14,7 @@
 
 ## Overview
 
-A Discord wrapper around Sherlock. The `/username` command runs Sherlock against a configured list of 25 platform names, parses candidate profile links from its output and displays up to 20 matches in an embed.
+A Discord wrapper around Sherlock. The `/username` command runs Sherlock against 21 platforms listed in `rudy_runtime/sites.py`, parses candidate profile links from its output and displays up to 20 matches in an embed, attaching the full list as a text file when there are more.
 
 ## Capabilities
 
@@ -25,6 +25,7 @@ A Discord wrapper around Sherlock. The `/username` command runs Sherlock against
 | Results | Parses Sherlock stdout, drops duplicate URLs, shows 20 matches and counts the rest |
 | Discord | `/username` with an optional overall timeout, kept between 15 and 180 seconds |
 | Errors | Reports a failed Sherlock run or timeout; internal errors go to the log, not the channel |
+| Limits | At most 2 searches run at once; each user waits `COOLDOWN_SECONDS` (default 30) between searches |
 
 ## Quick start
 
@@ -47,10 +48,10 @@ Use `/username username:example_user timeout:60` in Discord.
 
 ## Implementation notes
 
-- Sherlock's site identifiers and output format can change. The configured platform names must match the installed Sherlock version.
+- Sherlock's site identifiers and output format can change. A test checks every name in `rudy_runtime/sites.py` against the installed Sherlock's `data.json`, because Sherlock silently skips unknown names.
 - A matching username is a lead, not proof that profiles belong to the same person. Findings need verification in context.
 - Usernames are checked against a strict allowlist, and a leading `-` is refused so Sherlock never reads the name as an option. The subprocess is passed an argument list rather than a shell command.
-- The command uses a 10-second Sherlock per-request timeout and a separate overall wait. When the overall wait runs out the Sherlock process is killed. Concurrent command limits need review before operating a busy bot.
+- The command uses a 10-second Sherlock per-request timeout and a separate overall wait. When the overall wait runs out the Sherlock process is killed.
 - No platform sign-in, private-profile access or identity attribution is implemented. Replies are channel-visible.
 
 ## Project map
@@ -59,6 +60,8 @@ Use `/username username:example_user timeout:60` in Discord.
 bot.py                     Discord command and Sherlock runner
 rudy_runtime/sherlock.py   Sherlock command lookup and output parser
 rudy_runtime/validation.py Username and timeout checks
+rudy_runtime/sites.py      Platforms passed to Sherlock
+rudy_runtime/cooldown.py   Per-user cooldown
 rudy_runtime/config.py     Token loading from env or RUDY_CONFIG
 tests/                     unittest suite (python -m unittest discover -s tests)
 raven.png                  Required startup asset
