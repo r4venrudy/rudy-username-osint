@@ -31,7 +31,7 @@ import subprocess
 import traceback
 from typing import Optional
 
-from rudy_runtime.cooldown import Cooldown
+from rudy_runtime.cooldown import Cooldown, seconds_from_env
 from rudy_runtime.sites import SITES_TO_CHECK
 from rudy_runtime.sherlock import parse_sherlock_output, results_text, sherlock_command
 from rudy_runtime.validation import clamp_timeout, clean_username
@@ -42,7 +42,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # Each search starts a Sherlock process that makes dozens of HTTP requests; cap how many run at once
 MAX_CONCURRENT_SEARCHES = 2
 search_slots = asyncio.Semaphore(MAX_CONCURRENT_SEARCHES)
-cooldown = Cooldown(int(os.environ.get("COOLDOWN_SECONDS", "30") or 0))
+cooldown = Cooldown(seconds_from_env(os.environ.get("COOLDOWN_SECONDS"), 30))
 
 async def sync_commands():
     # setup_hook runs once per process; on_ready fires again on every reconnect
