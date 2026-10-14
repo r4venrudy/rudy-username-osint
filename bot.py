@@ -93,7 +93,9 @@ async def username_search(
         )
         await interaction.followup.send(embed=embed)
 
-        cmd = sherlock_command() + [username, "--timeout", "10", "--no-color"]
+        # --local uses the site list bundled with the installed Sherlock, the one tests/test_sites.py checks,
+        # instead of downloading the latest data.json from GitHub on every search
+        cmd = sherlock_command() + [username, "--timeout", "10", "--no-color", "--local"]
         for site in SITES_TO_CHECK:
             cmd.extend(["--site", site])
 
