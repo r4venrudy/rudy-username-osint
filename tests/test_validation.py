@@ -21,6 +21,11 @@ class CleanUsernameTests(unittest.TestCase):
             self.assertIsNone(clean_username(bad), bad)
         self.assertEqual(clean_username("raven-rudy"), "raven-rudy")
 
+    def test_drops_a_leading_at_sign(self):
+        self.assertEqual(clean_username(" @r4ven "), "r4ven")
+        self.assertIsNone(clean_username("@@r4ven"))
+        self.assertIsNone(clean_username("@-raven"))
+
     def test_handles_none(self):
         self.assertIsNone(clean_username(None))
 

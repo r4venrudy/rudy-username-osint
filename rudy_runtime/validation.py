@@ -11,8 +11,13 @@ DEFAULT_TIMEOUT = 60
 
 
 def clean_username(raw):
-    """Return the stripped username, or None if it is not 3-30 safe characters."""
+    """Return the stripped username, or None if it is not 3-30 safe characters.
+
+    A leading "@" (as copied from a profile, "@name") is dropped.
+    """
     name = (raw or "").strip()
+    if name.startswith("@"):
+        name = name[1:]
     return name if USERNAME_RE.fullmatch(name) else None
 
 
