@@ -32,7 +32,7 @@ import traceback
 from typing import Optional
 
 from rudy_runtime.cooldown import Cooldown, seconds_from_env
-from rudy_runtime.sites import SITES_TO_CHECK
+from rudy_runtime.sites import SITES_TO_CHECK, pick_sites
 from rudy_runtime.sherlock import parse_sherlock_output, results_text, sherlock_command
 from rudy_runtime.validation import clamp_timeout, clean_username
 
@@ -61,17 +61,26 @@ async def on_ready():
 @bot.tree.command(name="username", description="Search for a username across multiple platforms using Sherlock")
 @app_commands.describe(
     username="The username to search for",
-    timeout="Search timeout in seconds (default: 60)"
+    timeout="Search timeout in seconds (default: 60)",
+    sites="Only these platforms, comma separated (e.g. GitHub, Reddit); default: all"
 )
 async def username_search(
     interaction: discord.Interaction,
     username: str,
-    timeout: Optional[int] = 60
+    timeout: Optional[int] = 60,
+    sites: Optional[str] = None
 ):
     username = clean_username(username)
     if username is None:
         await interaction.response.send_message(
             "❌ Username must be 3-30 characters: letters, numbers, '.', '_' or '-', not starting with '-'.", ephemeral=True
+        )
+        return
+
+    selected, unknown = pick_sites(sites)
+    if unknown or not selected:
+        await interaction.response.send_message(
+            f"❌ Unknown platform(s): {', '.join(unknown) or '(none given)'}. Available: {', '.join(SITES_TO_CHECK)}", ephemeral=True
         )
         return
 
@@ -90,7 +99,7 @@ async def username_search(
     try:
         embed = discord.Embed(
             title=f"🔍 Searching for: {shown_name}",
-            description=f"Checking {len(SITES_TO_CHECK)} platforms...",
+            description=f"Checking {len(selected)} platforms...",
             color=discord.Color.blue()
         )
         # one message for the whole search: the "searching" embed is replaced by the result
@@ -100,7 +109,7 @@ async def username_search(
         # --local uses the site list bundled with the installed Sherlock, the one tests/test_sites.py checks,
         # instead of downloading the latest data.json from GitHub on every search
         cmd = sherlock_command() + [username, "--timeout", "10", "--no-color", "--local"]
-        for site in SITES_TO_CHECK:
+        for site in selected:
             cmd.extend(["--site", site])
 
         async with search_slots:
