@@ -112,7 +112,15 @@ async def username_search(
         for site in selected:
             cmd.extend(["--site", site])
 
+        if search_slots.locked():
+            # both slots are busy; say so instead of looking stuck on "Checking..."
+            embed.description = f"Waiting for a free search slot ({MAX_CONCURRENT_SEARCHES} searches run at once)..."
+            await show(embed=embed)
+
         async with search_slots:
+            if embed.description.startswith("Waiting"):
+                embed.description = f"Checking {len(selected)} platforms..."
+                await show(embed=embed)
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
