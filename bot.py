@@ -91,7 +91,9 @@ async def username_search(
             description=f"Checking {len(SITES_TO_CHECK)} platforms...",
             color=discord.Color.blue()
         )
-        await interaction.followup.send(embed=embed)
+        # one message for the whole search: the "searching" embed is replaced by the result
+        show = interaction.edit_original_response
+        await show(embed=embed)
 
         # --local uses the site list bundled with the installed Sherlock, the one tests/test_sites.py checks,
         # instead of downloading the latest data.json from GitHub on every search
@@ -111,7 +113,7 @@ async def username_search(
             except asyncio.TimeoutError:
                 process.kill()
                 await process.wait()
-                await interaction.followup.send(f"⏱️ Search for **{username}** took longer than {timeout} seconds and was stopped.")
+                await show(content=f"⏱️ Search for **{username}** took longer than {timeout} seconds and was stopped.", embed=None)
                 return
         output = stdout.decode("utf-8", errors="ignore")
 
@@ -120,7 +122,7 @@ async def username_search(
         if process.returncode != 0 and not found:
             # A missing or broken Sherlock install used to look like "No Results"
             print(f"Sherlock exited with {process.returncode}: {stderr.decode('utf-8', errors='ignore')[-500:]}")
-            await interaction.followup.send(embed=discord.Embed(
+            await show(embed=discord.Embed(
                 title="❌ Search failed",
                 description="Sherlock could not run on the server. Check that sherlock-project is installed.",
                 color=discord.Color.red()
@@ -138,11 +140,11 @@ async def username_search(
                 # the embed holds 20 fields at most, so the full list goes along as a text file
                 embed.set_footer(text=f"{len(found) - 20} more matches in the attached file")
                 report = discord.File(io.BytesIO(results_text(username, found).encode("utf-8")), filename=f"{username}-matches.txt")
-                await interaction.followup.send(embed=embed, file=report)
+                await show(embed=embed, attachments=[report])
             else:
-                await interaction.followup.send(embed=embed)
+                await show(embed=embed)
         else:
-            await interaction.followup.send(embed=discord.Embed(
+            await show(embed=discord.Embed(
                 title="❌ No Results",
                 description=f"No profiles found for **{username}**",
                 color=discord.Color.red()
@@ -151,7 +153,7 @@ async def username_search(
     except Exception:
         # Keep internal details (paths, command lines) in the log, not in the channel
         traceback.print_exc()
-        await interaction.followup.send(embed=discord.Embed(
+        await interaction.edit_original_response(embed=discord.Embed(
             title="❌ Error",
             description="Something went wrong while searching. Please try again later.",
             color=discord.Color.red()
