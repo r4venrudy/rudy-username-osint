@@ -84,10 +84,12 @@ async def username_search(
 
     await interaction.response.defer(thinking=True)
     timeout = clamp_timeout(timeout)
+    # "_" is allowed in usernames, so "__name__" would turn into underlined text in the replies
+    shown_name = discord.utils.escape_markdown(username)
 
     try:
         embed = discord.Embed(
-            title=f"🔍 Searching for: {username}",
+            title=f"🔍 Searching for: {shown_name}",
             description=f"Checking {len(SITES_TO_CHECK)} platforms...",
             color=discord.Color.blue()
         )
@@ -113,7 +115,7 @@ async def username_search(
             except asyncio.TimeoutError:
                 process.kill()
                 await process.wait()
-                await show(content=f"⏱️ Search for **{username}** took longer than {timeout} seconds and was stopped.", embed=None)
+                await show(content=f"⏱️ Search for **{shown_name}** took longer than {timeout} seconds and was stopped.", embed=None)
                 return
         output = stdout.decode("utf-8", errors="ignore")
 
@@ -131,7 +133,7 @@ async def username_search(
 
         if found:
             embed = discord.Embed(
-                title=f"✅ Found {len(found)} matches for: {username}",
+                title=f"✅ Found {len(found)} matches for: {shown_name}",
                 color=discord.Color.green()
             )
             for s in found[:20]:
@@ -146,7 +148,7 @@ async def username_search(
         else:
             await show(embed=discord.Embed(
                 title="❌ No Results",
-                description=f"No profiles found for **{username}**",
+                description=f"No profiles found for **{shown_name}**",
                 color=discord.Color.red()
             ))
 
