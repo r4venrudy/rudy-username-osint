@@ -162,6 +162,10 @@ async def username_search(
             ))
             return
 
+        # Sherlock prints hits in the order its requests finish; alphabetical is easier to scan
+        found.sort(key=lambda s: s["name"].lower())
+        checked = f"Checked {len(selected)} platforms"
+
         if found:
             embed = discord.Embed(
                 title=f"✅ Found {len(found)} matches for: {shown_name}",
@@ -173,15 +177,16 @@ async def username_search(
                 embed.add_field(name=s["name"], value=s["url"], inline=True)
             if len(found) > 20:
                 # the embed holds 20 fields at most, so the full list goes along as a text file
-                embed.set_footer(text=f"{len(found) - 20} more matches in the attached file")
+                embed.set_footer(text=f"{checked} · {len(found) - 20} more matches in the attached file")
                 report = discord.File(io.BytesIO(results_text(username, found).encode("utf-8")), filename=f"{username}-matches.txt")
                 await show(embed=embed, attachments=[report])
             else:
+                embed.set_footer(text=checked)
                 await show(embed=embed)
         else:
             await show(embed=discord.Embed(
                 title="❌ No Results",
-                description=f"No profiles found for **{shown_name}**",
+                description=f"No profiles found for **{shown_name}** on the {len(selected)} platforms checked",
                 color=discord.Color.red()
             ))
 
