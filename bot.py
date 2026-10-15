@@ -128,18 +128,31 @@ async def username_search(
                 stderr=asyncio.subprocess.PIPE
             )
 
+            # read stdout as it arrives, so the matches found before a timeout are not thrown away
+            chunks = []
+
+            async def read_stdout():
+                while chunk := await process.stdout.read(4096):
+                    chunks.append(chunk)
+
+            stderr_task = asyncio.ensure_future(process.stderr.read())
+            timed_out = False
             try:
-                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
+                await asyncio.wait_for(asyncio.gather(read_stdout(), process.wait()), timeout=timeout)
             except asyncio.TimeoutError:
                 process.kill()
                 await process.wait()
-                await show(content=f"⏱️ Search for **{shown_name}** took longer than {timeout} seconds and was stopped.", embed=None)
-                return
-        output = stdout.decode("utf-8", errors="ignore")
+                timed_out = True
+            stderr = await stderr_task
+        output = b"".join(chunks).decode("utf-8", errors="ignore")
 
         found = parse_sherlock_output(output)
 
-        if process.returncode != 0 and not found:
+        if timed_out and not found:
+            await show(content=f"⏱️ Search for **{shown_name}** took longer than {timeout} seconds and was stopped.", embed=None)
+            return
+
+        if process.returncode != 0 and not found and not timed_out:
             # A missing or broken Sherlock install used to look like "No Results"
             print(f"Sherlock exited with {process.returncode}: {stderr.decode('utf-8', errors='ignore')[-500:]}")
             await show(embed=discord.Embed(
@@ -154,6 +167,8 @@ async def username_search(
                 title=f"✅ Found {len(found)} matches for: {shown_name}",
                 color=discord.Color.green()
             )
+            if timed_out:
+                embed.description = f"⏱️ Stopped after {timeout} seconds; these are the matches found before that."
             for s in found[:20]:
                 embed.add_field(name=s["name"], value=s["url"], inline=True)
             if len(found) > 20:
