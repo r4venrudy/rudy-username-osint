@@ -44,7 +44,7 @@ Set `DISCORD_TOKEN` in the process environment, or supply `TOKEN` in a local JSO
 python bot.py
 ```
 
-Use `/username username:example_user timeout:60` in Discord, or add `sites:GitHub, Reddit` to check only those platforms.
+Use `/username username:example_user timeout:60` in Discord, or add `sites:GitHub, Reddit` to check only those platforms. A leading `@` (`@example_user`) is accepted and dropped.
 
 ## Implementation notes
 
