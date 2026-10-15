@@ -14,7 +14,7 @@
 
 ## Overview
 
-A Discord wrapper around Sherlock. The `/username` command runs Sherlock against 21 platforms listed in `rudy_runtime/sites.py`, parses candidate profile links from its output and displays up to 20 matches in an embed, attaching the full list as a text file when there are more.
+A Discord wrapper around Sherlock. The `/username` command runs Sherlock against 33 platforms listed in `rudy_runtime/sites.py`, parses candidate profile links from its output and displays up to 20 matches in an embed, attaching the full list as a text file when there are more.
 
 ## Capabilities
 

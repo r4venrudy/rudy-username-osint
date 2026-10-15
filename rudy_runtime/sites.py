@@ -23,6 +23,18 @@ SITES_TO_CHECK = [
     "Telegram",
     "Duolingo",
     "HackerNews",
+    "Discord",
+    "Roblox",
+    "Bluesky",
+    "threads",
+    "tumblr",
+    "Medium",
+    "DeviantArt",
+    "Patreon",
+    "Linktree",
+    "Letterboxd",
+    "GitLab",
+    "Kaggle",
 ]
 
 
