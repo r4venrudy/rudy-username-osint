@@ -62,14 +62,16 @@ async def on_ready():
 @app_commands.describe(
     username="The username to search for",
     timeout=f"Search timeout in seconds, {MIN_TIMEOUT}-{MAX_TIMEOUT} (default: 60)",
-    sites="Only these platforms, comma separated (e.g. GitHub, Reddit); default: all"
+    sites="Only these platforms, comma separated (e.g. GitHub, Reddit); default: all",
+    private="Show the results only to you (default: everyone in the channel)"
 )
 async def username_search(
     interaction: discord.Interaction,
     username: str,
     # Discord enforces the range in the client, so out-of-range values never reach clamp_timeout
     timeout: Optional[app_commands.Range[int, MIN_TIMEOUT, MAX_TIMEOUT]] = 60,
-    sites: Optional[str] = None
+    sites: Optional[str] = None,
+    private: bool = False
 ):
     username = clean_username(username)
     if username is None:
@@ -92,7 +94,8 @@ async def username_search(
         )
         return
 
-    await interaction.response.defer(thinking=True)
+    # every later update edits this one reply, so an ephemeral defer keeps the whole search private
+    await interaction.response.defer(thinking=True, ephemeral=private)
     timeout = clamp_timeout(timeout)
     # "_" is allowed in usernames, so "__name__" would turn into underlined text in the replies
     shown_name = discord.utils.escape_markdown(username)

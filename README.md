@@ -23,7 +23,7 @@ A Discord wrapper around Sherlock. The `/username` command runs Sherlock against
 | Search | Invokes Sherlock as an asynchronous subprocess with selected `--site` values |
 | Input | Accepts 3-30 letters, digits, `.`, `_` or `-`, never starting with `-` |
 | Results | Parses Sherlock stdout, drops duplicate URLs, shows 20 matches and counts the rest |
-| Discord | `/username` with an optional overall timeout (15-180 seconds) and an optional `sites` filter such as `GitHub, Reddit` |
+| Discord | `/username` with an optional overall timeout (15-180 seconds) an optional `sites` filter such as `GitHub, Reddit`, and `private` for a reply only you can see |
 | Errors | Reports a failed Sherlock run or timeout; internal errors go to the log, not the channel |
 | Limits | At most 2 searches run at once; each user waits `COOLDOWN_SECONDS` (default 30) between searches |
 
@@ -44,7 +44,7 @@ Set `DISCORD_TOKEN` in the process environment, or supply `TOKEN` in a local JSO
 python bot.py
 ```
 
-Use `/username username:example_user timeout:60` in Discord, or add `sites:GitHub, Reddit` to check only those platforms. A leading `@` (`@example_user`) is accepted and dropped.
+Use `/username username:example_user timeout:60` in Discord, or add `sites:GitHub, Reddit` to check only those platforms. A leading `@` (`@example_user`) is accepted and dropped. Add `private:True` to keep the results visible only to you.
 
 ## Implementation notes
 
