@@ -36,12 +36,15 @@ from rudy_runtime.sites import SITES_TO_CHECK, pick_sites
 from rudy_runtime.sherlock import parse_sherlock_output, results_text, sherlock_command
 from rudy_runtime.validation import MAX_TIMEOUT, MIN_TIMEOUT, clamp_timeout, clean_username
 from rudy_runtime.privacy import private_by_default
+from rudy_runtime.process_output import read_bounded
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Each search starts a Sherlock process that makes dozens of HTTP requests; cap how many run at once
 MAX_CONCURRENT_SEARCHES = 2
+MAX_SHERLOCK_OUTPUT_BYTES = 2 * 1024 * 1024
+MAX_SHERLOCK_ERROR_BYTES = 64 * 1024
 search_slots = asyncio.Semaphore(MAX_CONCURRENT_SEARCHES)
 cooldown = Cooldown(seconds_from_env(os.environ.get("COOLDOWN_SECONDS"), 30))
 
@@ -134,31 +137,41 @@ async def username_search(
                 stderr=asyncio.subprocess.PIPE
             )
 
-            # read stdout as it arrives, so the matches found before a timeout are not thrown away
-            chunks = []
+            def stop_process():
+                try:
+                    process.kill()
+                except ProcessLookupError:
+                    pass
 
-            async def read_stdout():
-                while chunk := await process.stdout.read(4096):
-                    chunks.append(chunk)
-
-            stderr_task = asyncio.ensure_future(process.stderr.read())
+            # Drain both pipes, but cap retained output and stop a runaway process at 2 MiB.
+            stdout_task = asyncio.create_task(read_bounded(
+                process.stdout, MAX_SHERLOCK_OUTPUT_BYTES, on_limit=stop_process
+            ))
+            stderr_task = asyncio.create_task(read_bounded(
+                process.stderr, MAX_SHERLOCK_ERROR_BYTES, drain=True
+            ))
             timed_out = False
             try:
-                await asyncio.wait_for(asyncio.gather(read_stdout(), process.wait()), timeout=timeout)
+                await asyncio.wait_for(process.wait(), timeout=timeout)
             except asyncio.TimeoutError:
-                process.kill()
+                stop_process()
                 await process.wait()
                 timed_out = True
-            stderr = await stderr_task
-        output = b"".join(chunks).decode("utf-8", errors="ignore")
+            output_bytes, output_limited = await stdout_task
+            stderr, _ = await stderr_task
+        if output_limited:
+            # Do not mistake a capped, incomplete final line for a Sherlock result.
+            output_bytes = output_bytes.rsplit(b"\n", 1)[0] if b"\n" in output_bytes else b""
+        output = output_bytes.decode("utf-8", errors="ignore")
 
         found = parse_sherlock_output(output)
 
-        if timed_out and not found:
-            await show(content=f"⏱️ Search for **{shown_name}** took longer than {timeout} seconds and was stopped.", embed=None)
+        if (timed_out or output_limited) and not found:
+            reason = f"longer than {timeout} seconds" if timed_out else "more than 2 MiB of output"
+            await show(content=f"⏱️ Search for **{shown_name}** exceeded {reason} and was stopped.", embed=None)
             return
 
-        if process.returncode != 0 and not found and not timed_out:
+        if process.returncode != 0 and not found and not timed_out and not output_limited:
             # A missing or broken Sherlock install used to look like "No Results"
             print(f"Sherlock exited with {process.returncode}: {stderr.decode('utf-8', errors='ignore')[-500:]}")
             await show(embed=discord.Embed(
@@ -179,6 +192,8 @@ async def username_search(
             )
             if timed_out:
                 embed.description = f"⏱️ Stopped after {timeout} seconds; these are the matches found before that."
+            elif output_limited:
+                embed.description = "⏱️ Stopped after Sherlock produced more than 2 MiB; these are the matches found before that."
             for s in found[:20]:
                 embed.add_field(name=s["name"], value=s["url"], inline=True)
             if len(found) > 20:

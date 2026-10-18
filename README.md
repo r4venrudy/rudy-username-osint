@@ -24,8 +24,8 @@ A Discord wrapper around Sherlock. The `/username` command runs Sherlock against
 | Input | Accepts 3-30 letters, digits, `.`, `_` or `-`, never starting with `-` |
 | Results | Parses Sherlock stdout, drops duplicate URLs, shows 20 matches and counts the rest |
 | Discord | `/username` with an optional overall timeout (15-180 seconds) an optional `sites` filter such as `GitHub, Reddit`, and `private` for a reply only you can see |
-| Errors | Reports a failed Sherlock run or timeout; internal errors go to the log, not the channel |
-| Limits | At most 2 searches run at once; each user waits `COOLDOWN_SECONDS` (default 30) between searches |
+| Errors | Reports a failed Sherlock run, timeout or output cap; internal errors go to the log, not the channel |
+| Limits | At most 2 searches run at once; each run retains up to 2 MiB of stdout and 64 KiB of stderr; each user waits `COOLDOWN_SECONDS` (default 30) between searches |
 
 ## Quick start
 
@@ -51,7 +51,7 @@ Use `/username username:example_user timeout:60` in Discord, or add `sites:GitHu
 - Sherlock's site identifiers and output format can change. A test checks every name in `rudy_runtime/sites.py` against the installed Sherlock's `data.json`, because Sherlock silently skips unknown names. Searches run with `--local`, so Sherlock uses that same bundled list instead of downloading one from GitHub.
 - A matching username is a lead, not proof that profiles belong to the same person. Findings need verification in context.
 - Usernames are checked against a strict allowlist, and a leading `-` is refused so Sherlock never reads the name as an option. The subprocess is passed an argument list rather than a shell command.
-- The command uses a 10-second Sherlock per-request timeout and a separate overall wait. When the overall wait runs out the Sherlock process is killed and the matches it printed before that are still shown.
+- The command uses a 10-second Sherlock per-request timeout and a separate overall wait. When the overall wait runs out or stdout exceeds 2 MiB, the Sherlock process is killed and complete matches it printed before that are still shown; stderr is drained but capped at 64 KiB in memory.
 - No platform sign-in, private-profile access or identity attribution is implemented. Replies are private by default; public posting is opt-in.
 
 ## Project map
