@@ -35,6 +35,7 @@ from rudy_runtime.cooldown import Cooldown, seconds_from_env
 from rudy_runtime.sites import SITES_TO_CHECK, pick_sites
 from rudy_runtime.sherlock import parse_sherlock_output, results_text, sherlock_command
 from rudy_runtime.validation import MAX_TIMEOUT, MIN_TIMEOUT, clamp_timeout, clean_username
+from rudy_runtime.privacy import private_by_default
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -63,7 +64,7 @@ async def on_ready():
     username="The username to search for",
     timeout=f"Search timeout in seconds, {MIN_TIMEOUT}-{MAX_TIMEOUT} (default: 60)",
     sites="Only these platforms, comma separated (e.g. GitHub, Reddit); default: all",
-    private="Show the results only to you (default: everyone in the channel)"
+    private="Keep the results visible only to you (default); set false to post in the channel"
 )
 async def username_search(
     interaction: discord.Interaction,
@@ -71,7 +72,7 @@ async def username_search(
     # Discord enforces the range in the client, so out-of-range values never reach clamp_timeout
     timeout: Optional[app_commands.Range[int, MIN_TIMEOUT, MAX_TIMEOUT]] = 60,
     sites: Optional[str] = None,
-    private: bool = False
+    private: Optional[bool] = None
 ):
     username = clean_username(username)
     if username is None:
@@ -94,7 +95,9 @@ async def username_search(
         )
         return
 
-    # every later update edits this one reply, so an ephemeral defer keeps the whole search private
+    private = private_by_default(private)
+
+    # Every update edits this one reply; private is the default and public output is opt-in.
     await interaction.response.defer(thinking=True, ephemeral=private)
     timeout = clamp_timeout(timeout)
     # "_" is allowed in usernames, so "__name__" would turn into underlined text in the replies

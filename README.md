@@ -44,7 +44,7 @@ Set `DISCORD_TOKEN` in the process environment, or supply `TOKEN` in a local JSO
 python bot.py
 ```
 
-Use `/username username:example_user timeout:60` in Discord, or add `sites:GitHub, Reddit` to check only those platforms. A leading `@` (`@example_user`) is accepted and dropped. Add `private:True` to keep the results visible only to you.
+Use `/username username:example_user timeout:60` in Discord, or add `sites:GitHub, Reddit` to check only those platforms. A leading `@` (`@example_user`) is accepted and dropped. Results are private by default; set `private:False` only if you intend to share them in the channel.
 
 ## Implementation notes
 
@@ -52,7 +52,7 @@ Use `/username username:example_user timeout:60` in Discord, or add `sites:GitHu
 - A matching username is a lead, not proof that profiles belong to the same person. Findings need verification in context.
 - Usernames are checked against a strict allowlist, and a leading `-` is refused so Sherlock never reads the name as an option. The subprocess is passed an argument list rather than a shell command.
 - The command uses a 10-second Sherlock per-request timeout and a separate overall wait. When the overall wait runs out the Sherlock process is killed and the matches it printed before that are still shown.
-- No platform sign-in, private-profile access or identity attribution is implemented. Replies are channel-visible.
+- No platform sign-in, private-profile access or identity attribution is implemented. Replies are private by default; public posting is opt-in.
 
 ## Project map
 
